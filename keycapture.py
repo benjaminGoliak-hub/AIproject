@@ -9,11 +9,14 @@ def on_release(key):
     return
 
 def readTimespan(timeSpanMSL: int):
-    listener = keyboard.Listener(
+    listener: keyboard.Listener = keyboard.Listener(
         on_press=on_press,
         on_release=on_release)
-
-    listener
+    listener.start()
+    time.sleep(timeSpanMSL/ 1000)
+    listener.stop()
+    
+    
 
 
 
