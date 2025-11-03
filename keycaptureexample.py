@@ -5,6 +5,8 @@ def on_press(key):
         print(f'Alphanumeric key pressed: {key.char}')
     except AttributeError:
         print(f'Special key pressed: {key}')
+        
+
 
 def on_release(key):
     print(f'Key released: {key}')
