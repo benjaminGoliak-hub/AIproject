@@ -7,7 +7,9 @@ import mss
 import numpy as np
 import cv2
 
-SCALE = (5, 5)
+global SCALE 
+SCALE = (50, 50)
+global KEYS
 KEYS = (keyboard.KeyCode.from_char('w'), 
     keyboard.KeyCode.from_char('a'),
     keyboard.KeyCode.from_char('s'),
@@ -73,4 +75,4 @@ def collectPairs(timespan: int, count: int):
         actionSet[i] = actionData
     return stateSet, actionSet
 
-states, actions = collectPairs(500, 10)
+
