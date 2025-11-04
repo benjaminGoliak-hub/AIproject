@@ -1,3 +1,4 @@
+# This file will read and process keyboard inputs
 from pynput import keyboard
 import time
 
@@ -5,6 +6,7 @@ def on_action(data, key: keyboard.KeyCode | keyboard.Key| None):
     data.add(key)
     return
 
+# Colect key presses over a timespan
 def readTimespan(timeSpanMSL: int):
     keyPressSet = set()
     keyReleaseSet = set()
@@ -15,9 +17,6 @@ def readTimespan(timeSpanMSL: int):
     listener.start()
     time.sleep(timeSpanMSL/ 1000)
     listener.stop()
-    print('Pressed:', keyPressSet)
-    print('Released:', keyReleaseSet)
-    
+    return keyPressSet, keyReleaseSet
 
-readTimespan(5000)
         
