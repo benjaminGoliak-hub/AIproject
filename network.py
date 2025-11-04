@@ -1,6 +1,4 @@
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
-
-device = torch.accelerator.current_accelerator() if torch.accelerator.is_available() else "cpu"
-print(f"Using {device} device")
+# Will implement the neural network
+# 0 clue how to do this but you can help
+# https://docs.pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
+# https://medium.com/@sthanikamsanthosh1994/imitation-learning-behavioral-cloning-using-pytorch-d5013404a9e5
