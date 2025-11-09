@@ -28,6 +28,7 @@ while True:
         States, Actions = datamanager.collectPairs(SAMPLE_TIME, SAMPLE_COUNT)
         
     if keyboard.KeyCode.from_char('\\') in step_inputs:
+        pass
     # Exit
     if keyboard.Key.esc in step_inputs:
         exit()
