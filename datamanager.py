@@ -2,7 +2,7 @@
 # Are gathered
 
 from pynput import keyboard
-from main import KEYS as KEYS
+from globals import KEYS
 import time
 import mss
 import numpy as np
