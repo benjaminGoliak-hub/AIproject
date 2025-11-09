@@ -2,6 +2,7 @@
 # Are gathered
 
 from pynput import keyboard
+from main import KEYS as KEYS
 import time
 import mss
 import numpy as np
@@ -9,11 +10,6 @@ import cv2
 
 global SCALE 
 SCALE = (128, 128)
-global KEYS
-KEYS = (keyboard.KeyCode.from_char('w'), 
-    keyboard.KeyCode.from_char('a'),
-    keyboard.KeyCode.from_char('s'),
-    keyboard.KeyCode.from_char('d'))
 FLOATTYPE = np.float16
 
 # get screenshot
