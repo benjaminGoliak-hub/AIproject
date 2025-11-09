@@ -1,6 +1,8 @@
 # Main loop which controls the program flow etc
 
+from os import abort
 from pynput import keyboard
+import time
 
 global SAMPLE_TIME
 global SAMPLE_COUNT
@@ -12,7 +14,18 @@ KEYS = (keyboard.KeyCode.from_char('w'),
 SAMPLE_TIME = int(1000/15)
 SAMPLE_COUNT = 60
 
+def _on_action(data, key: keyboard.KeyCode | keyboard.Key| None):
+    data.add(key)
 
-isQuit = False
-while not isQuit:
-    pass
+while True:
+    step_inputs = set()
+    actionListener = keyboard.Listener(
+        on_press=lambda key:_on_action(step_inputs, key))
+    actionListener.start()
+    time.sleep(SAMPLE_TIME/1000)
+    print(step_inputs)
+    if keyboard.Key.esc in step_inputs:
+        exit()
+    
+
+
