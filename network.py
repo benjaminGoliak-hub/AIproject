@@ -13,13 +13,19 @@ import datamanager
 class PolicyNet(nn.Module):
     def __init__(self, state_dim, action_dim):
         super(PolicyNet, self).__init__()
-        self.fc1 = nn.Linear(state_dim, 64)
+        self.con1 = nn.Linear(state_dim, 512)
+        self.con2 = nn.Linear(512, 128)
         self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(64, action_dim)
+        self.lg1 = nn.Linear(128, 128)
+        self.lg2 = nn.Linear(128, 64)
+        self.lg3 = nn.Linear(64, action_dim)
 
     def forward(self, x):
-        x = self.relu(self.fc1(x))
-        x = self.fc2(x)
+        x = self.con1(x)
+        x = self.relu(self.con2(x))
+        x = self.relu(self.lg1(x))
+        x = self.relu(self.lg2(x))
+        x = self.relu(self.lg3(x))
         return x
 
 # 2. Prepare dummy expert data (replace with your actual data)
@@ -41,7 +47,7 @@ criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # 4. Training loop
-num_epochs = 10
+num_epochs = 50
 for epoch in range(num_epochs):
     for states, actions in dataloader:
         optimizer.zero_grad()

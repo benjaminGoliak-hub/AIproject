@@ -8,7 +8,7 @@ import numpy as np
 import cv2
 
 global SCALE 
-SCALE = (50, 50)
+SCALE = (128, 128)
 global KEYS
 KEYS = (keyboard.KeyCode.from_char('w'), 
     keyboard.KeyCode.from_char('a'),
