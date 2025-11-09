@@ -7,6 +7,7 @@ from pynput import keyboard
 from globals import SAMPLE_TIME, SAMPLE_COUNT
 import datamanager
 import time
+import network
 
 
 
@@ -21,16 +22,14 @@ while True:
         on_press=lambda key:_on_action(step_inputs, key))
     actionListener.start()
     time.sleep(SAMPLE_TIME/1000)
-    print(step_inputs)
 
     
     if keyboard.Key.enter in step_inputs:
         States, Actions = datamanager.collectPairs(SAMPLE_TIME, SAMPLE_COUNT)
         
-    
+    if keyboard.KeyCode.from_char('\\') in step_inputs:
     # Exit
     if keyboard.Key.esc in step_inputs:
-        print(Actions)
         exit()
 
     # Capture screen info. Only do this once
