@@ -1,0 +1,9 @@
+mss
+numpy
+opencv-python
+pynput
+Pillow
+
+# Note: `torch` is intentionally omitted here because installing the correct
+# PyTorch wheel depends on your CUDA/CPU setup. See README or instructions
+# below to install torch appropriate for your machine.

@@ -1,4 +1,9 @@
 {
-    "python.envFile": "${workspaceFolder}/.venv",
-    "python.useEnvironmentsExtension": true
+    // Point VS Code to the workspace venv. This helps the Python extension
+    // detect the interpreter automatically. If you use a different path, update it.
+    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+    // Backwards-compatible key for older extension versions
+    "python.pythonPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+    // If you keep a .env file for env vars, set this to ".env" in the workspace root
+    "python.envFile": "${workspaceFolder}/.env"
 }
