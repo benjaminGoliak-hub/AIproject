@@ -77,7 +77,7 @@ class DataManager:
 
             # Save the keys
             self.keyStates_LOCK.acquire()
-            action = np.array(int(self.keyStates[key]) for key in self.recordingKeys)
+            action = np.array([int(self.keyStates[key]) for key in self.recordingKeys]).astype(PROGRAM_DTYPE)
             self.keyStates_LOCK.release()
 
             self.recordedData_LOCK.acquire()
@@ -95,13 +95,16 @@ class DataManager:
         assert(self.isRecording)
         self.isRecording = False
 
+    # Save using the pickle
     def saveData(self, fileName: str) -> None:
         # Makes the directory to save data to
         os.makedirs(SNIPIT_DIR, exist_ok=True) 
         pathName = os.path.join(SNIPIT_DIR, fileName)
+
         # Save the output
         self.recordedData_LOCK.acquire()
         with open(pathName, 'wb') as dataFile:
             pickle.dump(self.recordedData, dataFile)
         self.recordedData_LOCK.release()
+
         print(f'[INFO] Saved recording to {pathName}')
