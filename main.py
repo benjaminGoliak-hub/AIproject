@@ -15,6 +15,7 @@ def main():
     print('[Directions] press \'+\' to record, \'-\' to stop, \\ to train, and \';\' to run')
 
     def on_press(key):
+        print(key)
         try:
             if key.char == '+':
                 if not recorder.isRecording:

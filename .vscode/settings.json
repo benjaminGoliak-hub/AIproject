@@ -1,4 +1,5 @@
 {
     "python.envFile": "${workspaceFolder}/.venv",
-    "python.useEnvironmentsExtension": true
+    "python.useEnvironmentsExtension": true,
+    "python.pythonPath": ".venv/bin/python"
 }

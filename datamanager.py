@@ -78,14 +78,10 @@ class DataManager:
             frame = self._grabscreen()
 
             # Save the keys
-            self.keyStates_LOCK.acquire()
             action = np.array([int(self.keyStates[key]) for key in self.recordingKeys]).astype(PROGRAM_DTYPE)
-            self.keyStates_LOCK.release()
 
-            self.recordedData_LOCK.acquire()
             self.recordedFrameData.append(frame)
             self.recordedActionData.append(action)
-            self.recordedData_LOCK.release()
 
             # Sleep
             time.sleep(SAMPLE_RATE)
@@ -95,8 +91,10 @@ class DataManager:
     
     # Stops the recording
     def stop(self) -> None:
+        print('[INFO] Stop Requeted')
         assert(self.isRecording)
         self.isRecording_LOCK.acquire()
+        print('[INFO] Stop Lock Swapped')
         self.isRecording = False
         self.isRecording_LOCK.release()
 
