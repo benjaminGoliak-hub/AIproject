@@ -5,7 +5,7 @@
 
 from pynput import keyboard
 from threading import Lock
-from globals import PROGRAM_DTYPE, SAMPLE_RATE, SNIPIT_DIR
+from globals import CAPTURED_KEYS, CAPTURED_SCALE, PROGRAM_DTYPE, SAMPLE_RATE, SNIPIT_DIR
 import time
 import mss
 import pickle
@@ -15,9 +15,9 @@ import cv2
 
 class DataManager:
     # Init function
-    def __init__(self, recordingScale: tuple[int, int], recordingKeys: list[keyboard.Key | keyboard.KeyCode]) -> None:
-        self.recordingScale = recordingScale
-        self.recordingKeys = recordingKeys
+    def __init__(self) -> None:
+        self.recordingScale = CAPTURED_SCALE
+        self.recordingKeys = CAPTURED_KEYS
 
         self.isRecording = False
         self.isRecording_LOCK = Lock()
@@ -25,7 +25,8 @@ class DataManager:
         self.keyStates = {key: False for key in self.recordingKeys}
         self.keyStates_LOCK = Lock()
         
-        self.recordedData = []
+        self.recordedFrameData = []
+        self.recordedActionData = []
         self.recordedData_LOCK = Lock()
     
     # Gets and processes screenshot
@@ -70,7 +71,8 @@ class DataManager:
         print('[INFO] Key recording has started')
 
         # Loop untill another thread changes the isRecording state
-        self.recordedData = []
+        self.recordedFrameData = []
+        self.recordedActionData = []
         while self.isRecording:
             # Get the screenshot
             frame = self._grabscreen()
@@ -81,14 +83,15 @@ class DataManager:
             self.keyStates_LOCK.release()
 
             self.recordedData_LOCK.acquire()
-            self.recordedData.append((frame, action))
+            self.recordedFrameData.append(frame)
+            self.recordedActionData.append(action)
             self.recordedData_LOCK.release()
 
             # Sleep
             time.sleep(SAMPLE_RATE)
         
         keyListener.stop()
-        print(f'[INFO] Key recording has stopped. Recorded {len(self.recordedData)} samples')
+        print(f'[INFO] Key recording has stopped. Recorded {len(self.recordedActionData)} samples')
     
     # Stops the recording
     def stop(self) -> None:
@@ -104,7 +107,7 @@ class DataManager:
         # Save the output
         self.recordedData_LOCK.acquire()
         with open(pathName, 'wb') as dataFile:
-            pickle.dump(self.recordedData, dataFile)
+            pickle.dump((self.recordedFrameData, self.recordedActionData), dataFile)
         self.recordedData_LOCK.release()
 
         print(f'[INFO] Saved recording to {pathName}')
