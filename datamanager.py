@@ -16,6 +16,7 @@ class InputRecorder:
         self.isRecording = False
         self.recordingScale = recordingScale
         self.recordingKeys = recordingKeys
+        self.keyStates = {key: False for key in self.recordingKeys}
     
     # Gets and processes screenshot
     def _grabscreen(self):
@@ -25,6 +26,20 @@ class InputRecorder:
             grey = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
             scaled = cv2.resize(grey, self.recordingScale)
             return scaled / 255.0
+    
+    # On action function for key reading
+    # Use try because it caused errors before sometimes
+    def _onAction(self, toggle: bool, key: keyboard.Key | keyboard.KeyCode | None) -> None:
+        try:
+            if key in self.recordingKeys:
+                assert(key is not None) # My language checker makes me unwrap this
+                self.keyStates[key] = toggle
+        except:
+            pass
+    
+    
+    
+
     
 
         
