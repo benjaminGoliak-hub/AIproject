@@ -96,7 +96,9 @@ class DataManager:
     # Stops the recording
     def stop(self) -> None:
         assert(self.isRecording)
+        self.isRecording_LOCK.acquire()
         self.isRecording = False
+        self.isRecording_LOCK.release()
 
     # Save using the pickle
     def saveData(self, fileName: str) -> None:

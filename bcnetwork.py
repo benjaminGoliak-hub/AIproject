@@ -4,9 +4,10 @@ import numpy as np
 import torch
 from torch import nn, optim
 from numpy._typing import NDArray
+from torch.utils.data import DataLoader, Dataset
 from globals import CAPTURED_KEYS, PROGRAM_TTYPE, DEVICE
 
-class PairDataset:
+class PairDataset(Dataset):
     # Get the data from files
     def __init__(self, files: list[str]):
         print(f'[INFO] loading {len(files)} datasets')
@@ -25,10 +26,10 @@ class PairDataset:
         return len(self.frames)
     
     # Gets a list of the data converted to tensors
-    def getTensors(self):
-        frames = [torch.tensor(frame, dtype=PROGRAM_TTYPE).unsqueeze(0) for frame in self.frames]
-        actions = [torch.tensor(action, dtype=PROGRAM_TTYPE).unsqueeze(0) for action in self.actions]
-        return frames, actions
+    def __getitem__(self, index):
+        action = torch.tensor(self.actions[index], dtype=PROGRAM_TTYPE).unsqueeze(0)
+        frame = torch.tensor(self.frames[index], dtype=PROGRAM_TTYPE).unsqueeze(0)
+        return frame, action
 
 class BCNetwork(nn.Module):
     def __init__(self):
@@ -49,20 +50,21 @@ class BCNetwork(nn.Module):
         return self.fc(self.conv(x))
 
 # Trains the network
-def train_bc(model: BCNetwork, dataLoader: PairDataset, epochs: int):
+def train_bc(model: BCNetwork, dataLoader: DataLoader, epochs: int):
     model.train()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.BCELoss()
-    frames, actions = dataLoader.getTensors()
     for epoch in range(epochs):
         losses = []
-        for i in range(len(frames)):
-            frame, action = frames[i], actions[i]
+        for frame, action in dataLoader:
             frame, action = frame.to(DEVICE), action.to(DEVICE)
             preds = model(frame)
-            loss = criterion(preds, actions)
+            loss = criterion(preds, action)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             losses.append(loss.item())
         print(f'[EPOCH {epoch+1}] Loss: {np.mean(losses):.4f}')
+    
+    torch.save(model.state_dict(), "bc_model.pth")
+    print("[INFO] Model saved to bc_model.pth")
