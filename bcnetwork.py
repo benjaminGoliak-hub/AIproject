@@ -2,13 +2,14 @@
 import pickle
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn, optim
 from numpy._typing import NDArray
-from globals import CAPTURED_KEYS, PROGRAM_TTYPE
+from globals import CAPTURED_KEYS, PROGRAM_TTYPE, DEVICE
 
 class PairDataset:
     # Get the data from files
     def __init__(self, files: list[str]):
+        print(f'[INFO] loading {len(files)} datasets')
         frames: list[NDArray] = []
         actions: list[NDArray] = []
         for fileName in files:
@@ -18,6 +19,7 @@ class PairDataset:
                 actions += actionData
         self.frames = np.concatenate(frames)
         self.actions = np.concatenate(actions)
+        print('[INFO] Files loaded')
     
     def __len__(self):
         return len(self.frames)
@@ -42,63 +44,25 @@ class BCNetwork(nn.Module):
             nn.Linear(3136, 512), nn.ReLU(),
             nn.Linear(512, len(CAPTURED_KEYS)), nn.Sigmoid()
         )
+    
+    def forward(self, x):
+        return self.fc(self.conv(x))
 
-
-# import torch
-# import torch.nn as nn
-# import torch.optim as optim
-# from torch.utils.data import DataLoader, TensorDataset
-# import datamanager
-
-# # 1. Define the policy network
-# class PolicyNet(nn.Module):
-#     def __init__(self, state_dim, action_dim):
-#         super(PolicyNet, self).__init__()
-#         self.con1 = nn.Linear(state_dim, 512)
-#         self.con2 = nn.Linear(512, 128)
-#         self.relu = nn.ReLU()
-#         self.lg1 = nn.Linear(128, 128)
-#         self.lg2 = nn.Linear(128, 64)
-#         self.lg3 = nn.Linear(64, action_dim)
-
-#     def forward(self, x):
-#         x = self.con1(x)
-#         x = self.relu(self.con2(x))
-#         x = self.relu(self.lg1(x))
-#         x = self.relu(self.lg2(x))
-#         x = self.relu(self.lg3(x))
-#         return x
-
-# # 2. Prepare dummy expert data (replace with your actual data)
-
-# expert_states, expert_actions = datamanager.collectPairs(int(1000/15), 60)
-# print("input capture done")
-
-# expert_states = torch.from_numpy(expert_states).float()
-# expert_actions = torch.from_numpy(expert_actions).float()
-# print(expert_states.size())
-# dataset = TensorDataset(expert_states, expert_actions)
-# dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
-
-# # 3. Initialize model, loss, and optimizer
-# state_dim = int(datamanager.SCALE[0] * datamanager.SCALE[1])
-# action_dim = int(len(datamanager.KEYS) * 2) 
-# model = PolicyNet(state_dim, action_dim)
-# criterion = nn.MSELoss()
-# optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-# # 4. Training loop
-# num_epochs = 50
-# for epoch in range(num_epochs):
-#     for states, actions in dataloader:
-#         optimizer.zero_grad()
-#         predicted_actions = model(states)
-#         loss = criterion(predicted_actions, actions)
-#         loss.backward()
-#         optimizer.step()
-#     print(f"Epoch {epoch+1}/{num_epochs}, Loss: {loss.item():.4f}")
-
-# # 5. Inference (example)
-# new_state = expert_states[4]
-# predicted_action = model(new_state)
-# print(f"Predicted action for new state: {predicted_action.detach().numpy()}")
+# Trains the network
+def train_bc(model: BCNetwork, dataLoader: PairDataset, epochs: int):
+    model.train()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    criterion = nn.BCELoss()
+    frames, actions = dataLoader.getTensors()
+    for epoch in range(epochs):
+        losses = []
+        for i in range(len(frames)):
+            frame, action = frames[i], actions[i]
+            frame, action = frame.to(DEVICE), action.to(DEVICE)
+            preds = model(frame)
+            loss = criterion(preds, actions)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            losses.append(loss.item())
+        print(f'[EPOCH {epoch+1}] Loss: {np.mean(losses):.4f}')

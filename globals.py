@@ -36,6 +36,10 @@ SAMPLE_RATE = 1000 / 20
 global SNIPIT_DIR
 SNIPIT_DIR = 'saves'
 
+# Device for the training
+global DEVICE
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 
 
