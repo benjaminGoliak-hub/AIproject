@@ -1,12 +1,47 @@
 # Also re-doing this with classes
 import pickle
+import numpy as np
+import torch
+import torch.nn as nn
+from numpy._typing import NDArray
+from globals import CAPTURED_KEYS, PROGRAM_TTYPE
 
 class PairDataset:
-    def __init__(self, files):
-        self.frames, self.actions = [], []
-        for file in files:
-            data = pickle.load(file)
+    # Get the data from files
+    def __init__(self, files: list[str]):
+        frames: list[NDArray] = []
+        actions: list[NDArray] = []
+        for fileName in files:
+            with open(fileName, 'rb') as File:
+                frameData, actionData = pickle.load(File)
+                frames += frameData
+                actions += actionData
+        self.frames = np.concatenate(frames)
+        self.actions = np.concatenate(actions)
+    
+    def __len__(self):
+        return len(self.frames)
+    
+    # Gets a list of the data converted to tensors
+    def getTensors(self):
+        frames = [torch.tensor(frame, dtype=PROGRAM_TTYPE).unsqueeze(0) for frame in self.frames]
+        actions = [torch.tensor(action, dtype=PROGRAM_TTYPE).unsqueeze(0) for action in self.actions]
+        return frames, actions
 
+class BCNetwork(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Recommended shape for a network
+        self.conv = nn.Sequential(
+            nn.Conv2d(1, 32, 8, stride=4), nn.ReLU(),
+            nn.Conv2d(32, 64, 4, stride=2), nn.ReLU(),
+            nn.Conv2d(64, 64, 3, stride=1), nn.ReLU(),
+            nn.Flatten()
+        )
+        self.fc = nn.Sequential(
+            nn.Linear(3136, 512), nn.ReLU(),
+            nn.Linear(512, len(CAPTURED_KEYS)), nn.Sigmoid()
+        )
 
 
 # import torch
