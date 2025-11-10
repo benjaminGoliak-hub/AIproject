@@ -1,3 +1,4 @@
+from io import FileIO
 from pynput import keyboard
 import numpy as np
 
@@ -22,6 +23,10 @@ PROGRAM_DTYPE = np.float32
 global SAMPLE_RATE
 
 SAMPLE_RATE = 1000 / 20
+
+# Directory for saved snipits
+global SNIPIT_DIR
+SNIPIT_DIR = 'saves'
 
 
 
