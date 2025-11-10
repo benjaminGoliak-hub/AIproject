@@ -80,6 +80,15 @@ class InputRecorder:
 
             # Sleep
             time.sleep(SAMPLE_RATE)
+        
+        keyListener.stop()
+        print(f'[INFO] Key recording has stopped. Recorded {len(self.recordedData)} samples')
+    
+    # Stops the recording
+    def stop(self) -> None:
+        assert(self.isRecording)
+        self.isRecording = False
+
 
         
 
