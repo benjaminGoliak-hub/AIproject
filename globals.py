@@ -1,5 +1,5 @@
 from pynput import keyboard
-
+import numpy as np
 
 # Set of keys we care about listening to and recording
 global CAPTURED_KEYS
@@ -12,6 +12,17 @@ CAPTURED_KEYS = (
     _fromChar('a'),
     _fromChar('s'),
     _fromChar('d'))
+
+# Data type to save info as
+global PROGRAM_DTYPE
+
+PROGRAM_DTYPE = np.float32
+
+# Time between each input logging (in MS)
+global SAMPLE_RATE
+
+SAMPLE_RATE = 1000 / 20
+
 
 
 
