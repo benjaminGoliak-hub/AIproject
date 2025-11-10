@@ -1,5 +1,8 @@
 # This file will be responsible for compiling datasamples and controlling how they
-# Are gathered
+# Are gathered 
+# Decided to restructure this into a class type to make life easier
+# Also moving to files to save data
+
 
 from pynput import keyboard
 import time
@@ -7,14 +10,12 @@ import mss
 import numpy as np
 import cv2
 
-global SCALE 
-SCALE = (128, 128)
-global KEYS
-KEYS = (keyboard.KeyCode.from_char('w'), 
-    keyboard.KeyCode.from_char('a'),
-    keyboard.KeyCode.from_char('s'),
-    keyboard.KeyCode.from_char('d'))
-FLOATTYPE = np.float16
+class InputRecorder:
+
+
+
+
+
 
 # get screenshot
 def _grabscreen():
