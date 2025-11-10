@@ -11,6 +11,24 @@ import numpy as np
 import cv2
 
 class InputRecorder:
+    # Init function
+    def __init__(self, recordingScale: tuple[int, int], recordingKeys: list[keyboard.Key | keyboard.KeyCode]) -> None:
+        self.isRecording = False
+        self.recordingScale = recordingScale
+        self.recordingKeys = recordingKeys
+    
+    # Gets and processes screenshot
+    def _grabscreen(self):
+        with mss.mss() as sct:
+            monitor = sct.monitors[1] 
+            screenshot = np.array(sct.grab(monitor))
+            grey = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
+            scaled = cv2.resize(grey, self.recordingScale)
+            return scaled / 255.0
+    
+
+        
+
 
 
 
