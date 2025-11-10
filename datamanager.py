@@ -11,7 +11,7 @@ import mss
 import numpy as np
 import cv2
 
-class InputRecorder:
+class DataManager:
     # Init function
     def __init__(self, recordingScale: tuple[int, int], recordingKeys: list[keyboard.Key | keyboard.KeyCode]) -> None:
         self.recordingScale = recordingScale
