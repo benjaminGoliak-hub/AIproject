@@ -5,7 +5,7 @@ import torch
 from torch import nn, optim
 from numpy._typing import NDArray
 from torch.utils.data import DataLoader, Dataset
-from globals import CAPTURED_KEYS, CAPTURED_SCALE, PROGRAM_TTYPE, DEVICE
+from globals import CAPTURED_KEYS, CAPTURED_SCALE, PROGRAM_TTYPE, DEVICE, STACK_FRAMES
 
 class PairDataset(Dataset):
     # Get the data from files
@@ -28,7 +28,12 @@ class PairDataset(Dataset):
     # Gets a list of the data converted to tensors
     def __getitem__(self, index):
         action = torch.tensor(self.actions[index], dtype=PROGRAM_TTYPE) # .unsqueeze(0)
-        frame = torch.tensor(self.frames[index], dtype=PROGRAM_TTYPE).unsqueeze(0)
+        frameStack = []
+        for d in STACK_FRAMES:
+            frameStack.append(self.frames[max(0, index - d)])
+        frameStack = np.stack(frameStack, axis=0)
+
+        frame = torch.tensor(frameStack, dtype=PROGRAM_TTYPE)
         return frame, action
 
 class BCNetwork(nn.Module):
@@ -36,14 +41,14 @@ class BCNetwork(nn.Module):
         super().__init__()
         # Recommended shape for a network
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 32, 8, stride=4), nn.ReLU(),
+            nn.Conv2d(len(STACK_FRAMES), 32, 8, stride=4), nn.ReLU(),
             nn.Conv2d(32, 64, 4, stride=2), nn.ReLU(),
             nn.Conv2d(64, 64, 3, stride=1), nn.ReLU(),
             nn.Flatten()
         )
         with torch.no_grad():
-            sample = torch.zeros(1, 1, *CAPTURED_SCALE)
-            out = self.conv(sample)
+            sample = torch.zeros(1, len(STACK_FRAMES), *CAPTURED_SCALE)
+            out = self.conv(sample).view(1, -1)
             n_features = out.numel()
         
         self.fc = nn.Sequential(
