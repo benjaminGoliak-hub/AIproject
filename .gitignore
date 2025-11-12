@@ -1,3 +1,4 @@
 test.png
 __pycache__/
 saves/TestSet.pkle
+bc_model.pth
