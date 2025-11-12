@@ -1,2 +1,4 @@
 test.png
-__pycache__/
+__pycache__/*
+__pycache__/controller.cpython-312.pyc
+__pycache__/globals.cpython-312.pyc
