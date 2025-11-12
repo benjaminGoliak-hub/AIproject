@@ -1,74 +1,114 @@
 # This file will be responsible for compiling datasamples and controlling how they
-# Are gathered
+# Are gathered 
+# Decided to restructure this from old implementation into a class type to make life easier
+# Also moving to pickle
 
 from pynput import keyboard
-from globals import KEYS
+from threading import Lock
+from globals import CAPTURED_KEYS, CAPTURED_SCALE, PROGRAM_DTYPE, SAMPLE_RATE, SNIPIT_DIR
 import time
 import mss
+import pickle
+import os
 import numpy as np
 import cv2
 
-global SCALE 
-SCALE = (128, 128)
-FLOATTYPE = np.float16
+class DataManager:
+    # Init function
+    def __init__(self) -> None:
+        self.recordingScale = CAPTURED_SCALE
+        self.recordingKeys = CAPTURED_KEYS
 
-# get screenshot
-def _grabscreen():
-    with mss.mss() as sct:
-    # Get raw pixels from the entire screen
-        monitor = sct.monitors[1]  # Use sct.monitors[0] for all monitors
-        screenshot = sct.grab(monitor)
-        return np.array(screenshot)
+        self.isRecording = False
+        self.isRecording_LOCK = Lock()
+
+        self.keyStates = {key: False for key in self.recordingKeys}
+        self.keyStates_LOCK = Lock()
         
-# Pre-process screenshot
-def _preprocess(array: np.ndarray):
-    grey = cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)
-    scaled = cv2.resize(grey, SCALE)
-    scaled = scaled.astype(FLOATTYPE)
-    scaled /= 256.0
-    return scaled
+        self.recordedFrameData = []
+        self.recordedActionData = []
+        self.recordedData_LOCK = Lock()
+    
+    # Gets and processes screenshot
+    def _grabscreen(self):
+        with mss.mss() as sct:
+            monitor = sct.monitors[1] 
+            screenshot = np.array(sct.grab(monitor))
+            grey = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
+            scaled = cv2.resize(grey, self.recordingScale).astype(PROGRAM_DTYPE)
+            return scaled / 255.0
+    
+    # On action function for key reading
+    # Use try because it caused errors before sometimes
+    def _onAction(self, toggle: bool, key: keyboard.Key | keyboard.KeyCode | None) -> None:
+        try:
+            if key in self.recordingKeys:
+                assert(key is not None) # My language checker makes me unwrap this
+                self.keyStates_LOCK.acquire()
+                self.keyStates[key] = toggle
+                self.keyStates_LOCK.release()
+        except:
+            pass
+    
+    # Start recording
+    # The reason it is a class now so that it has state
+    def record(self):
+        print('[INFO] Key recording requested')
 
-def _getScreenData() -> np.ndarray:
-    return _preprocess(_grabscreen())
+        # Start the state of this
+        self.isRecording_LOCK.acquire()
+        assert(not self.isRecording) # Protect from double calls because this may run async
+        self.isRecording = True
+        self.isRecording_LOCK.release()
 
-def _on_action(data, key: keyboard.KeyCode | keyboard.Key| None):
-    data.add(key)
+        # Make and run the listener to hear inputs
+        keyListener = keyboard.Listener(
+            on_press=lambda key:self._onAction(True, key),
+            on_release=lambda key:self._onAction(False, key)
+        )
+        keyListener.start()
 
-# Colect key presses over a timespan
-def _readTimespan(timeSpanMSL: int):
-    keyPressSet = set()
-    keyReleaseSet = set()
-    listener: keyboard.Listener = keyboard.Listener(
-        on_press=lambda key:_on_action(keyPressSet, key),
-        on_release=lambda key:_on_action(keyReleaseSet, key)
-    )
-    listener.start()
-    time.sleep(timeSpanMSL/ 1000)
-    listener.stop()
-    return keyPressSet, keyReleaseSet
+        print('[INFO] Key recording has started')
 
-def _translateKeys(keyPressSet: set, keyReleaseSet: set) -> np.ndarray:
-    keyArray = np.zeros(2 * len(KEYS), FLOATTYPE)
-    for i in range(len(KEYS)):
-        if KEYS[i] in keyPressSet:
-            keyArray[i] = 1.0
-        if KEYS[i] in keyReleaseSet:
-            keyArray[i + len(KEYS)] = 1.0
-    return keyArray
+        # Loop untill another thread changes the isRecording state
+        self.recordedFrameData = []
+        self.recordedActionData = []
+        while self.isRecording:
+            # Get the screenshot
+            frame = self._grabscreen()
 
-def _getKeyData(timespan: int):
-    keysPressed, keysReleased = _readTimespan(timespan)
-    return _translateKeys(keysPressed, keysReleased)
+            # Save the keys
+            action = np.array([int(self.keyStates[key]) for key in self.recordingKeys]).astype(PROGRAM_DTYPE)
 
-# Collect a set of pairs to use
-def collectPairs(timespan: int, count: int):
-    stateSet = np.empty(shape=(count, SCALE[0] * SCALE[1]), dtype=FLOATTYPE)
-    actionSet = np.empty(shape=(count, 2 * len(KEYS)), dtype=FLOATTYPE)
-    for i in range(count):
-        stateData = _getScreenData()
-        stateSet[i] = stateData.ravel()
-        actionData = _getKeyData(timespan)
-        actionSet[i] = actionData
-    return stateSet, actionSet
+            self.recordedFrameData.append(frame)
+            self.recordedActionData.append(action)
 
+            # Sleep
+            time.sleep(SAMPLE_RATE)
+        
+        keyListener.stop()
+        print(f'[INFO] Key recording has stopped. Recorded {len(self.recordedActionData)} samples')
+    
+    # Stops the recording
+    def stop(self) -> None:
+        print('[INFO] Stop Requeted')
+        assert(self.isRecording)
+        self.isRecording_LOCK.acquire()
+        self.saveData('TestSet.pkle')
+        print('[INFO] Stop Lock Swapped')
+        self.isRecording = False
+        self.isRecording_LOCK.release()
 
+    # Save using the pickle
+    def saveData(self, fileName: str) -> None:
+        # Makes the directory to save data to
+        os.makedirs(SNIPIT_DIR, exist_ok=True) 
+        pathName = os.path.join(SNIPIT_DIR, fileName)
+
+        # Save the output
+        self.recordedData_LOCK.acquire()
+        with open(pathName, 'wb') as dataFile:
+            pickle.dump((self.recordedFrameData, self.recordedActionData), dataFile)
+        self.recordedData_LOCK.release()
+
+        print(f'[INFO] Saved recording to {pathName}')
