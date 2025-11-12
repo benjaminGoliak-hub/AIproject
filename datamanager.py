@@ -1,7 +1,7 @@
 # This file will be responsible for compiling datasamples and controlling how they
 # Are gathered 
-# Decided to restructure this into a class type to make life easier
-# Also moving to files to save data
+# Decided to restructure this from old implementation into a class type to make life easier
+# Also moving to pickle
 
 from pynput import keyboard
 from threading import Lock
@@ -94,6 +94,7 @@ class DataManager:
         print('[INFO] Stop Requeted')
         assert(self.isRecording)
         self.isRecording_LOCK.acquire()
+        self.saveData('TestSet.pkle')
         print('[INFO] Stop Lock Swapped')
         self.isRecording = False
         self.isRecording_LOCK.release()

@@ -5,7 +5,7 @@ import torch
 from torch import nn, optim
 from numpy._typing import NDArray
 from torch.utils.data import DataLoader, Dataset
-from globals import CAPTURED_KEYS, PROGRAM_TTYPE, DEVICE
+from globals import CAPTURED_KEYS, CAPTURED_SCALE, PROGRAM_TTYPE, DEVICE
 
 class PairDataset(Dataset):
     # Get the data from files
@@ -18,8 +18,8 @@ class PairDataset(Dataset):
                 frameData, actionData = pickle.load(File)
                 frames += frameData
                 actions += actionData
-        self.frames = np.concatenate(frames)
-        self.actions = np.concatenate(actions)
+        self.frames = np.stack(frames)
+        self.actions = np.stack(actions)
         print('[INFO] Files loaded')
     
     def __len__(self):
@@ -27,7 +27,7 @@ class PairDataset(Dataset):
     
     # Gets a list of the data converted to tensors
     def __getitem__(self, index):
-        action = torch.tensor(self.actions[index], dtype=PROGRAM_TTYPE).unsqueeze(0)
+        action = torch.tensor(self.actions[index], dtype=PROGRAM_TTYPE) # .unsqueeze(0)
         frame = torch.tensor(self.frames[index], dtype=PROGRAM_TTYPE).unsqueeze(0)
         return frame, action
 
@@ -41,8 +41,13 @@ class BCNetwork(nn.Module):
             nn.Conv2d(64, 64, 3, stride=1), nn.ReLU(),
             nn.Flatten()
         )
+        with torch.no_grad():
+            sample = torch.zeros(1, 1, *CAPTURED_SCALE)
+            out = self.conv(sample)
+            n_features = out.numel()
+        
         self.fc = nn.Sequential(
-            nn.Linear(3136, 512), nn.ReLU(),
+            nn.Linear(n_features, 512), nn.ReLU(),
             nn.Linear(512, len(CAPTURED_KEYS)), nn.Sigmoid()
         )
     

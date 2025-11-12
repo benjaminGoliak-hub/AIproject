@@ -30,7 +30,7 @@ PROGRAM_TTYPE = torch.float32
 # Time between each input logging (in MS)
 global SAMPLE_RATE
 
-SAMPLE_RATE = 1000 / 20
+SAMPLE_RATE = 1 / 20
 
 # Directory for saved snipits
 global SNIPIT_DIR

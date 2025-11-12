@@ -23,7 +23,13 @@ def main():
             elif key.char == '-':
                 recorder.stop()
             elif key.char == '\\':
-                files = [os.path.join(SNIPIT_DIR, f) for f in os.listdir(SNIPIT_DIR) if f.endswith('.pkle')]
+                print('[INFO] Training Entered')
+                try:
+                    files = [os.path.join(SNIPIT_DIR, f) for f in os.listdir(SNIPIT_DIR) if f.endswith('.pkle')]
+                except: 
+                    print('[ERROR] did not create pickle directory')
+                    return 
+                print('[INFO] Working with files {files}')
                 if not files:
                     print('[WARNING] No files found')
                     return
@@ -31,17 +37,25 @@ def main():
                 dataLoader = DataLoader(dataset, batch_size=32, shuffle=True)
                 train_bc(model, dataLoader, 10)
             elif key.char == ';':
+                print('[INFO] Model training active')
                 if not os.path.exists("bc_model.pth"):
                     print("[WARN] Train model first.")
                     return
-                model.load_state_dict(torch.load("bc_model.pth", map_location=DEVICE))
+                
 
+                model.load_state_dict(torch.load("bc_model.pth", map_location=DEVICE))
+                print('[INFO] Control started, press escape to quit')
                 model_control(model, keyboard.Controller())
-        except:
+                print('[INFO] Control ended')
+        except Exception as e:
+            print({e})
+            exit()
             pass
     
     with keyboard.Listener(on_press=on_press) as listener:
         listener.join()
+
+print("Current working dir:", os.getcwd())
 
 if __name__ == '__main__':
     main()
