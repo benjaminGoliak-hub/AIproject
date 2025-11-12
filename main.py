@@ -48,7 +48,6 @@ def main():
                 model_control(model, keyboard.Controller())
                 print('[INFO] Control ended')
         except Exception as e:
-            print(e)
             pass
     
     with keyboard.Listener(on_press=on_press) as listener:
