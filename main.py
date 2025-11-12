@@ -12,12 +12,12 @@ def main():
     recorder = DataManager()
     model = BCNetwork().to(DEVICE)
     running = True
-    print('[Directions] press \'+\' to record, \'-\' to stop, \\ to train, and \';\' to run')
+    print('[Directions] press \'=\' to record, \'-\' to stop, \\ to train, and \';\' to run')
 
     def on_press(key):
         print(key)
         try:
-            if key.char == '+':
+            if key.char == '=':
                 if not recorder.isRecording:
                     threading.Thread(target=recorder.record).start()
             elif key.char == '-':
@@ -48,6 +48,7 @@ def main():
                 model_control(model, keyboard.Controller())
                 print('[INFO] Control ended')
         except Exception as e:
+            print(e)
             pass
     
     with keyboard.Listener(on_press=on_press) as listener:

@@ -41,7 +41,7 @@ global DEVICE
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 global STACK_FRAMES
-STACK_FRAMES = [0, 1, 4, 8]
+STACK_FRAMES = [0, 1, 4]
 
 
 
