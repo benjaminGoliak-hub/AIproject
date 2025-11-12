@@ -18,7 +18,9 @@ def grabscreen(sct):
     monitor = sct.monitors[1] 
     screenshot = np.array(sct.grab(monitor))
     grey = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
-    scaled = cv2.resize(grey, CAPTURED_SCALE).astype(PROGRAM_DTYPE)
+    blurred = cv2.GaussianBlur(grey, (3,3), 0)
+    equalized = cv2.equalizeHist(blurred)
+    scaled = cv2.resize(equalized, CAPTURED_SCALE).astype(PROGRAM_DTYPE)
     return scaled / 255.0
 
 class DataManager:
@@ -95,7 +97,8 @@ class DataManager:
         print('[INFO] Stop Requeted')
         assert(self.isRecording)
         self.isRecording_LOCK.acquire()
-        self.saveData('TestSet.pkle')
+        id = round(time.time() % 10000)
+        self.saveData(f'Recording-{id}.pkle')
         print('[INFO] Stop Lock Swapped')
         self.isRecording = False
         self.isRecording_LOCK.release()
