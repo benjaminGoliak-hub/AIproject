@@ -13,11 +13,24 @@ using pip you will need the following python packages
 * pynput
 
 ## Use intstructions
-To start the program run main.py
-These are the default controls for the program:
-'=' - Start capturing a recording session
-'-' - End current recording session
-'\\' - Train model on saved recordings
-';' - Enter model control mode
-'esc' - Exit model control mode
+To start the program run main.py \n
+These are the default controls for the program: \n
+'=' - Start capturing a recording session \n
+'-' - End current recording session \n
+'\\' - Train model on saved recordings \n
+';' - Enter model control mode \n
+'esc' - Exit model control mode \n
+'backspace' - Delete all trained data \n
+
+> You can load a saved model with the ';' command \n
+> but to re-train a new model from the ground up, restart the program and train it using the '\\' command \n
+> Commands will also be queued during blocking states (recording, training, inference) so take note not to queue actions \n
+
+to change the keys the model is trained to interact with, edit the CAPTURED_KEYS variable in the globals.py file (note you will need to delete all recordings)
+
+## How it works
+The program uses 'behavioral cloning (BC)' to learn from the recordings. Instead of seeking to understand how the recorded game works, the algorithim learns to associate the frames with the recorded actions of the player. This makes it easy to train a somewhat effective system, with the downside of it having little ability to adapt to new states and correct its play when mistakes are made
+
+
+
 
