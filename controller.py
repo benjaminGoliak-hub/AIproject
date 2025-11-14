@@ -6,7 +6,8 @@ import time
 import threading
 from pynput import keyboard
 from torch import nn
-from globals import DEVICE, PROGRAM_TTYPE, PROGRAM_DTYPE, CAPTURED_SCALE, CAPTURED_KEYS, SAMPLE_RATE
+from datamanager import grabscreen
+from globals import DEVICE, PROGRAM_TTYPE, PROGRAM_DTYPE, CAPTURED_SCALE, CAPTURED_KEYS, SAMPLE_RATE, STACK_FRAMES
 
 # Controlls the keyboard
 def model_control(model: nn.Module, inputDevice: keyboard.Controller):
@@ -34,19 +35,25 @@ def model_control(model: nn.Module, inputDevice: keyboard.Controller):
     )
 
     escapeListener.start()
-
+    frameQueue = []
     try:
         with mss.mss() as sct:
             while not stop_event.is_set():
                 # Gets picture
-                monitor = sct.monitors[1] 
-                screenshot = np.array(sct.grab(monitor))
-                grey = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
-                scaled = cv2.resize(grey, CAPTURED_SCALE).astype(PROGRAM_DTYPE)
-                screen = torch.tensor(scaled / 255.0, dtype=PROGRAM_TTYPE).unsqueeze(0).unsqueeze(0).to(DEVICE)
-                
+                scaled = grabscreen(sct)
+                screen = torch.tensor(scaled, dtype=PROGRAM_TTYPE)
+                frameQueue.insert(0, screen)
+                # Trim down queue
+                if len(frameQueue) > max(STACK_FRAMES):
+                    frameQueue = frameQueue[0:max(STACK_FRAMES)]
+                frameStack = []
+                for d in STACK_FRAMES:
+                    frameStack.append(frameQueue[min(d, len(frameQueue) - 1)])
+                    
+                frameStack = np.stack(frameStack, axis=0)
+                frameStack = torch.tensor(frameStack, dtype=PROGRAM_TTYPE).unsqueeze(0).to(DEVICE)
                 with torch.no_grad():
-                    actions = model(screen).cpu().numpy()
+                    actions = model(frameStack).cpu().numpy()
 
                 for i, key in enumerate(CAPTURED_KEYS):
                     press(key, actions[0][i] > 0.5)

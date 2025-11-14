@@ -13,6 +13,16 @@ import os
 import numpy as np
 import cv2
 
+# Gets and processes screenshot
+def grabscreen(sct):
+    monitor = sct.monitors[1] 
+    screenshot = np.array(sct.grab(monitor))
+    grey = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
+    blurred = cv2.GaussianBlur(grey, (3,3), 0)
+    equalized = cv2.equalizeHist(blurred)
+    scaled = cv2.resize(equalized, CAPTURED_SCALE).astype(PROGRAM_DTYPE)
+    return scaled / 255.0
+
 class DataManager:
     # Init function
     def __init__(self) -> None:
@@ -29,14 +39,6 @@ class DataManager:
         self.recordedActionData = []
         self.recordedData_LOCK = Lock()
     
-    # Gets and processes screenshot
-    def _grabscreen(self):
-        with mss.mss() as sct:
-            monitor = sct.monitors[1] 
-            screenshot = np.array(sct.grab(monitor))
-            grey = cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
-            scaled = cv2.resize(grey, self.recordingScale).astype(PROGRAM_DTYPE)
-            return scaled / 255.0
     
     # On action function for key reading
     # Use try because it caused errors before sometimes
@@ -75,7 +77,8 @@ class DataManager:
         self.recordedActionData = []
         while self.isRecording:
             # Get the screenshot
-            frame = self._grabscreen()
+            with mss.mss() as sct:
+                frame = grabscreen(sct)
 
             # Save the keys
             action = np.array([int(self.keyStates[key]) for key in self.recordingKeys]).astype(PROGRAM_DTYPE)
@@ -94,7 +97,8 @@ class DataManager:
         print('[INFO] Stop Requeted')
         assert(self.isRecording)
         self.isRecording_LOCK.acquire()
-        self.saveData('TestSet.pkle')
+        id = round(time.time() % 10000)
+        self.saveData(f'Recording-{id}.pkle')
         print('[INFO] Stop Lock Swapped')
         self.isRecording = False
         self.isRecording_LOCK.release()

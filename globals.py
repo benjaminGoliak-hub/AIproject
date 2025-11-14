@@ -40,6 +40,8 @@ SNIPIT_DIR = 'saves'
 global DEVICE
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+global STACK_FRAMES
+STACK_FRAMES = [0, 2]
 
 
 
