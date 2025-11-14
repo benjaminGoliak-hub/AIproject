@@ -13,18 +13,19 @@ using pip you will need the following python packages
 * pynput
 
 ## Use intstructions
-To start the program run main.py \n
-These are the default controls for the program: \n
-'=' - Start capturing a recording session \n
-'-' - End current recording session \n
-'\\' - Train model on saved recordings \n
-';' - Enter model control mode \n
-'esc' - Exit model control mode \n
-'backspace' - Delete all trained data \n
+To start the program run main.py 
 
-> You can load a saved model with the ';' command \n
-> but to re-train a new model from the ground up, restart the program and train it using the '\\' command \n
-> Commands will also be queued during blocking states (recording, training, inference) so take note not to queue actions \n
+These are the default controls for the program: <br>
+'=' - Start capturing a recording session <br>
+'-' - End current recording session <br>
+'\\' - Train model on saved recordings <br>
+';' - Enter model control mode <br>
+'esc' - Exit model control mode <br>
+'backspace' - Delete all trained data <br>
+
+> You can load a saved model with the ';' command <br>
+> but to re-train a new model from the ground up, restart the program and train it using the '\\' command <br>
+> Commands will also be queued during blocking states (recording, training, inference) so take note not to queue actions <br>
 
 to change the keys the model is trained to interact with, edit the CAPTURED_KEYS variable in the globals.py file (note you will need to delete all recordings)
 
