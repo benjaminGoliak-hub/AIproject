@@ -11,6 +11,7 @@ using pip you will need the following python packages
 * mss
 * Pillow
 * pynput
+* OpenCv
 
 ## Use intstructions
 To start the program run main.py 
