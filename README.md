@@ -9,7 +9,6 @@ This project provides a trainable CNN that can be conrolled in the background an
 using pip you will need the following python packages
 * PyTorch (torch)
 * mss
-* Pillow
 * pynput
 * OpenCv
 
